@@ -17,7 +17,7 @@ extractor = cloggy_extractor()
 img = cv2.imread('./images/sample_dog1.jpg')
 #show_image(img)
 
-rect = (85,59, 365, 259)
+rect = (87,59, 365, 259)
 
 img_filtered = extractor.apply_filter(img)
 #show_image(img_filtered)
@@ -38,7 +38,6 @@ data_size = (120, 120)
 data = ip.resizeImage(img_silhouette, data_size, rect, True)
 show_image(data, True)
 
-data = cv2.flip(data, 1)
 cv2.imwrite('auto.png', data)
 
 data2 = './images/sample_dog2.jpg'
