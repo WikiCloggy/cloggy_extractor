@@ -116,6 +116,8 @@ class cloggy_extractor:
         return dst
 
     def get_average_color(self, img, _patch_size, _init_color, startX, endX, startY, endY, array, vertical=True):
+        if _patch_size < self.min_patch_size:
+            return
         average_color = _init_color
 
         if vertical:
