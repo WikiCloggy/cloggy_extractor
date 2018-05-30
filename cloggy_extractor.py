@@ -8,7 +8,7 @@ class cloggy_extractor:
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
 
-    def delete_background(self, img, rect:tuple, skip_pixel=4, marker_size=5, threshold=3.5):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=4, threshold=3):
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
@@ -102,7 +102,7 @@ class cloggy_extractor:
 
         return np.array(color_list)
 
-    def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=4, threshold=2.5):
+    def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=6, threshold=3):
         rect_x, rect_y, rect_width, rect_height = rect
 
         for y in range(rect_y, rect_y + rect_height, skip_pixel):
