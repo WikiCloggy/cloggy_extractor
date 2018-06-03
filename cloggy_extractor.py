@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 
 class cloggy_extractor:
-    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=18):
+    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=24):
         self.filter_kernal_size = filter_kernal_size
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=4, bg_threshold=2.2, fg_threshold=3):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=6, bg_threshold=2.2, fg_threshold=3):
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
