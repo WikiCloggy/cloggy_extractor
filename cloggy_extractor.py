@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 class cloggy_extractor:
-    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=5, max_patch_size=10):
+    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=18):
         self.filter_kernal_size = filter_kernal_size
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
@@ -16,11 +16,13 @@ class cloggy_extractor:
         cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_RECT)
 
         bg_color_list = self.extract_color_around_rect(_img, rect)
+        fg_color_list = self.extract_foreground_color(_img, rect)
 
         bgd_model = np.zeros((1, 65), np.float64)
         fgd_model = np.zeros((1, 65), np.float64)
 
         self.mark_image(_img, mask, rect, bg_color_list, marker_size, skip_pixel, threshold)
+        self.mark_image(_img, mask, rect, fg_color_list, marker_size, skip_pixel, threshold, 1)
 
         cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_MASK)
 
@@ -39,7 +41,7 @@ class cloggy_extractor:
         height, width = img.shape[:2]
         rect_x, rect_y, rect_width, rect_height = rect
 
-        patch_size = min(height / 10, width / 10)
+        patch_size = round(min(height / 10, width / 10))
         patch_size = max(self.min_patch_size, patch_size)
         patch_size = min(patch_size, self.max_patch_size)
 
@@ -102,7 +104,22 @@ class cloggy_extractor:
 
         return np.array(color_list)
 
-    def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=6, threshold=3):
+    def extract_foreground_color(self, img, rect):
+        x, y, width, height = rect
+        centerX = x + round(width / 2)
+        centerY = y + round(height / 2)
+        space = round(max(width, height) / 20)
+
+        color_list = []
+        color_list.append(img[centerY, centerX])
+        color_list.append(img[centerY + space, centerX])
+        color_list.append(img[centerY - space, centerX])
+        color_list.append(img[centerY, centerX + space])
+        color_list.append(img[centerY, centerX - space])
+
+        return np.array(color_list)
+
+    def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=6, threshold=3, mark_color=0):
         rect_x, rect_y, rect_width, rect_height = rect
 
         for y in range(rect_y, rect_y + rect_height, skip_pixel):
@@ -111,7 +128,7 @@ class cloggy_extractor:
                     diff_mean = color_list[i] - src[y, x]
                     diff_mean = np.mean(diff_mean)
                     if diff_mean < threshold:
-                        dst = cv2.circle(dst, (x, y), marker_size, 0, -1)
+                        dst = cv2.circle(dst, (x, y), marker_size, mark_color, -1)
 
         return dst
 
