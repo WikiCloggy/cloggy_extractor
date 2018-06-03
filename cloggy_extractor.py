@@ -8,7 +8,7 @@ class cloggy_extractor:
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=4, threshold=3):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=4, bg_threshold=2.2, fg_threshold=3):
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
@@ -21,8 +21,8 @@ class cloggy_extractor:
         bgd_model = np.zeros((1, 65), np.float64)
         fgd_model = np.zeros((1, 65), np.float64)
 
-        self.mark_image(_img, mask, rect, bg_color_list, marker_size, skip_pixel, threshold)
-        self.mark_image(_img, mask, rect, fg_color_list, marker_size, skip_pixel, threshold, 1)
+        self.mark_image(_img, mask, rect, bg_color_list, marker_size, skip_pixel, bg_threshold)
+        self.mark_image(_img, mask, rect, fg_color_list, marker_size, skip_pixel, fg_threshold, 1)
 
         cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_MASK)
 
@@ -125,8 +125,8 @@ class cloggy_extractor:
         for y in range(rect_y, rect_y + rect_height, skip_pixel):
             for x in range(rect_x, rect_x + rect_width, skip_pixel):
                 for i in range(color_list.shape[0]):
-                    diff_mean = color_list[i] - src[y, x]
-                    diff_mean = np.mean(diff_mean)
+                    diff_mean = abs(color_list[i] - src[y, x])
+                    diff_mean = abs(np.mean(diff_mean))
                     if diff_mean < threshold:
                         dst = cv2.circle(dst, (x, y), marker_size, mark_color, -1)
 
