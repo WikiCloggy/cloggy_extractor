@@ -112,6 +112,7 @@ class cloggy_extractor:
 
         space = round(self.min_patch_size / 2)
 
+        """
         self.get_average_color(img, self.min_patch_size,
                                centerX - self.min_patch_size - space, centerX + self.min_patch_size + space,
                                centerY - space, centerY + space,
@@ -124,7 +125,19 @@ class cloggy_extractor:
                                centerX - self.min_patch_size - space, centerX + self.min_patch_size + space,
                                centerY + self.min_patch_size - space, centerY + self.min_patch_size + space,
                                color_list, False)
-
+        """
+        if width > height:
+            space = round(width / 4)
+            self.get_average_color(img, self.min_patch_size,
+                                   centerX - space, centerX + space,
+                                   centerY - round(self.min_patch_size / 2), centerY + round(self.min_patch_size / 2),
+                                   color_list, False, True)
+        else:
+            space = round(height / 4)
+            self.get_average_color(img, self.min_patch_size,
+                                   centerX - round(self.min_patch_size / 2), centerX + round(self.min_patch_size / 2),
+                                   centerY - space, centerY + space,
+                                   color_list, True, True)
         return np.array(color_list)
 
     def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=6, threshold=3, mark_color=0):
@@ -154,7 +167,7 @@ class cloggy_extractor:
 
         return dst
 
-    def get_average_color(self, img, _patch_size, startX, endX, startY, endY, array, vertical=True):
+    def get_average_color(self, img, _patch_size, startX, endX, startY, endY, array, vertical=True, except_white=False):
         _init_color = self.get_init_color(img)
 
         if _patch_size < self.min_patch_size:
@@ -186,7 +199,11 @@ class cloggy_extractor:
                 #average_color = average_color / (step * _patch_size)
                 #print(print(step * _patch_size))
                 average_color = np.round(average_color / (step * _patch_size)).astype('uint8')
-                array.append(average_color)
+                if np.mean(average_color) >= 245 and except_white:
+                    print(average_color)
+                    pass
+                else:
+                    array.append(average_color)
                 average_color = _init_color
                 step = 0
 
