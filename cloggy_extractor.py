@@ -130,12 +130,26 @@ class cloggy_extractor:
     def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=6, threshold=3, mark_color=0):
         rect_x, rect_y, rect_width, rect_height = rect
 
+        try:
+            chanel = src.shape[2]
+        except:
+            chanel = 1
         for y in range(rect_y, rect_y + rect_height, skip_pixel):
             for x in range(rect_x, rect_x + rect_width, skip_pixel):
                 for i in range(color_list.shape[0]):
                     diff_mean = abs(color_list[i] - src[y, x])
                     diff_mean = abs(np.mean(diff_mean))
-                    if diff_mean < threshold:
+                    """
+                    normalization = 0
+                    for j in range(chanel):
+                        c1 = color_list[i][j] + 1
+                        c2 = src[y, x][j] + 1
+                        normalization += max(c1, c2) / min(c1, c2)
+                    normalization = normalization / chanel
+                    normalization = np.exp(normalization)
+                    if normalization < threshold:"""
+                    if np.exp(diff_mean) < threshold:
+                        #print(x, y, normalization, threshold, mark_color)
                         dst = cv2.circle(dst, (x, y), marker_size, mark_color, -1)
 
         return dst
