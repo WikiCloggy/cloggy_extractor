@@ -112,7 +112,7 @@ class cloggy_extractor:
 
         color_list = []
         color_list.append(img[centerY, centerX])
-        for i in range(1, 4):
+        for i in range(1, 2):
             color_list.append(img[centerY + i * space, centerX])
             color_list.append(img[centerY - i * space, centerX])
             color_list.append(img[centerY, centerX + i * space])
