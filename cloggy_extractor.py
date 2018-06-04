@@ -8,7 +8,7 @@ class cloggy_extractor:
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=6, bg_threshold=2.5, fg_threshold=2.5):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=10, bg_threshold=3, fg_threshold=3):
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
@@ -110,7 +110,7 @@ class cloggy_extractor:
         centerY = y + round(height / 2)
         color_list = []
 
-        space = round(self.min_patch_size / 2)
+        #space = round(self.min_patch_size / 2)
 
         """
         self.get_average_color(img, self.min_patch_size,
@@ -127,20 +127,20 @@ class cloggy_extractor:
                                color_list, False)
         """
         if width > height:
-            space = round(width / 4)
+            space = round(width / 8)
             self.get_average_color(img, self.min_patch_size,
                                    centerX - space, centerX + space,
                                    centerY - round(self.min_patch_size / 2), centerY + round(self.min_patch_size / 2),
                                    color_list, False, True)
         else:
-            space = round(height / 4)
+            space = round(height / 8)
             self.get_average_color(img, self.min_patch_size,
                                    centerX - round(self.min_patch_size / 2), centerX + round(self.min_patch_size / 2),
                                    centerY - space, centerY + space,
                                    color_list, True, True)
         return np.array(color_list)
 
-    def mark_image(self, src, dst, rect, color_list, marker_size=4, skip_pixel=6, threshold=3, mark_color=0):
+    def mark_image(self, src, dst, rect, color_list, marker_size=6, skip_pixel=6, threshold=3, mark_color=0):
         rect_x, rect_y, rect_width, rect_height = rect
 
         try:
