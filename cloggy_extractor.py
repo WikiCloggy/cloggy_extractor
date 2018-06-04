@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 
 class cloggy_extractor:
-    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=24):
+    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=18):
         self.filter_kernal_size = filter_kernal_size
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=6, bg_threshold=2, fg_threshold=3):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=6, bg_threshold=1.5, fg_threshold=2):
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
@@ -61,7 +61,7 @@ class cloggy_extractor:
             startY = rect_y
             endY = rect_y + rect_height
 
-            self.get_average_color(img, _patch_size, init_color, startX, endX, startY, endY, color_list)
+            self.get_average_color(img, _patch_size, startX, endX, startY, endY, color_list)
 
         if width > rect_x + rect_width:
             if width - patch_size >= rect_x + rect_width:
@@ -74,7 +74,7 @@ class cloggy_extractor:
             startY = rect_y
             endY = startY + rect_height
 
-            self.get_average_color(img, _patch_size, init_color, startX, endX, startY, endY, color_list)
+            self.get_average_color(img, _patch_size, startX, endX, startY, endY, color_list)
 
         if rect_y > 0:
             if rect_y - patch_size >= 0:
@@ -87,7 +87,7 @@ class cloggy_extractor:
             startY = rect_y - _patch_size
             endY = rect_y
 
-            self.get_average_color(img, _patch_size, init_color, startX, endX, startY, endY, color_list, False)
+            self.get_average_color(img, _patch_size, startX, endX, startY, endY, color_list, False)
 
         if height > rect_y + rect_height:
             if height - patch_size >= rect_y + rect_height:
@@ -100,7 +100,7 @@ class cloggy_extractor:
             startY = rect_y + rect_height
             endY = startY + _patch_size
 
-            self.get_average_color(img, _patch_size, init_color, startX, endX, startY, endY, color_list, False)
+            self.get_average_color(img, _patch_size, startX, endX, startY, endY, color_list, False)
 
         return np.array(color_list)
 
@@ -108,15 +108,22 @@ class cloggy_extractor:
         x, y, width, height = rect
         centerX = x + round(width / 2)
         centerY = y + round(height / 2)
-        space = round(max(width, height) / 30)
-
         color_list = []
-        color_list.append(img[centerY, centerX])
-        for i in range(1, 2):
-            color_list.append(img[centerY + i * space, centerX])
-            color_list.append(img[centerY - i * space, centerX])
-            color_list.append(img[centerY, centerX + i * space])
-            color_list.append(img[centerY, centerX - i * space])
+
+        space = round(self.min_patch_size / 2)
+
+        self.get_average_color(img, self.min_patch_size,
+                               centerX - self.min_patch_size - space, centerX + self.min_patch_size + space,
+                               centerY - space, centerY + space,
+                               color_list, False)
+        self.get_average_color(img, self.min_patch_size,
+                               centerX - self.min_patch_size - space, centerX + self.min_patch_size + space,
+                               centerY - self.min_patch_size - space, centerY - self.min_patch_size + space,
+                               color_list, False)
+        self.get_average_color(img, self.min_patch_size,
+                               centerX - self.min_patch_size - space, centerX + self.min_patch_size + space,
+                               centerY + self.min_patch_size - space, centerY + self.min_patch_size + space,
+                               color_list, False)
 
         return np.array(color_list)
 
@@ -133,7 +140,9 @@ class cloggy_extractor:
 
         return dst
 
-    def get_average_color(self, img, _patch_size, _init_color, startX, endX, startY, endY, array, vertical=True):
+    def get_average_color(self, img, _patch_size, startX, endX, startY, endY, array, vertical=True):
+        _init_color = self.get_init_color(img)
+
         if _patch_size < self.min_patch_size:
             return
         average_color = _init_color
@@ -166,3 +175,10 @@ class cloggy_extractor:
                 array.append(average_color)
                 average_color = _init_color
                 step = 0
+
+    def get_init_color(self, img):
+        if len(img.shape) == 3:
+            init_color = [0, 0, 0]
+        else:
+            init_color = 0
+        return init_color
