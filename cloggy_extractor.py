@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from common import util
 
 class cloggy_extractor:
     def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=18):
@@ -9,6 +10,7 @@ class cloggy_extractor:
         self.max_patch_size = max_patch_size
 
     def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=2.5, fg_threshold=2.5):
+        _img = self.optimze_image_size(img)
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
@@ -27,6 +29,10 @@ class cloggy_extractor:
         cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_MASK)
 
         mask2 = np.where((mask == 1) + (mask == 3), 255, 0).astype('uint8')
+
+        kernal = np.ones((3, 3), np.uint8)
+        mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernal)
+        mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernal)
 
         return mask2
 
@@ -213,3 +219,16 @@ class cloggy_extractor:
         else:
             init_color = 0
         return init_color
+
+    def optimze_image_size(self, img):
+        height, width = img.shape[:2]
+        if width > height:
+            ratio = 640 / width
+            resize_width = 640
+            resize_height = round(height * ratio)
+        else:
+            ratio = 640 / height
+            resize_height = 640
+            resize_width = round(width * ratio)
+        img = util.resizeImage(img, (resize_width, resize_height), (0, 0, width, height))  # #show_image(img)
+        return img
