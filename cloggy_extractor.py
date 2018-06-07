@@ -3,13 +3,16 @@ import numpy as np
 from common import util
 
 class cloggy_extractor:
-    def __init__(self, filter_kernal_size=3, filter_iter_number=30, min_patch_size=6, max_patch_size=18):
+    def __init__(self, filter_kernal_size=5, filter_iter_number=3, min_patch_size=6, max_patch_size=18):
         self.filter_kernal_size = filter_kernal_size
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
 
     def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=2.5, fg_threshold=2.5):
+        height, width = img.shape[:2]
+        if width > 640 or height > 640:
+            img = self.optimze_image_size(img)
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
@@ -29,7 +32,7 @@ class cloggy_extractor:
 
         mask2 = np.where((mask == 1) + (mask == 3), 255, 0).astype('uint8')
 
-        kernal = np.ones((3, 3), np.uint8)
+        kernal = np.ones((self.filter_kernal_size, self.filter_kernal_size), np.uint8)
         mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernal)
         mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernal)
 
