@@ -3,15 +3,16 @@ import numpy as np
 from common import util
 
 class cloggy_extractor:
-    def __init__(self, filter_kernal_size=5, filter_iter_number=3, min_patch_size=6, max_patch_size=18):
+    def __init__(self, filter_kernal_size=5, filter_iter_number=3, min_patch_size=12, max_patch_size=24):
         self.filter_kernal_size = filter_kernal_size
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
+        self.version = '2.1'
 
     def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=2.5, fg_threshold=2.5):
         height, width = img.shape[:2]
-        if width > 640 or height > 640:
+        if width != 640 or height != 640:
             img = self.optimze_image_size(img)
         _img = self.apply_filter(img)
         mask = np.zeros(img.shape[:2], np.uint8)
@@ -19,11 +20,15 @@ class cloggy_extractor:
         fgd_model = np.zeros((1, 65), np.float64)
         cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_RECT)
 
-        bg_color_list = self.extract_color_around_rect(_img, rect)
-        fg_color_list = self.extract_foreground_color(_img, rect)
-
         bgd_model = np.zeros((1, 65), np.float64)
         fgd_model = np.zeros((1, 65), np.float64)
+
+        #b, g, r = cv2.split(_img)
+        #g = g * 2
+        #marked_img = cv2.merge((b, g, r))
+
+        bg_color_list = self.extract_color_around_rect(_img, rect)
+        fg_color_list = self.extract_foreground_color(_img, rect)
 
         self.mark_image(_img, mask, rect, bg_color_list, marker_size, skip_pixel, bg_threshold)
         self.mark_image(_img, mask, rect, fg_color_list, marker_size, skip_pixel, fg_threshold, 1)
@@ -32,7 +37,10 @@ class cloggy_extractor:
 
         mask2 = np.where((mask == 1) + (mask == 3), 255, 0).astype('uint8')
 
-        kernal = np.ones((self.filter_kernal_size, self.filter_kernal_size), np.uint8)
+        kernal_size = marker_size
+        if kernal_size % 2 == 0:
+            kernal_size += 1
+        kernal = np.ones((kernal_size, kernal_size), np.uint8)
         mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernal)
         mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernal)
 
@@ -158,8 +166,8 @@ class cloggy_extractor:
         for y in range(rect_y, rect_y + rect_height, skip_pixel):
             for x in range(rect_x, rect_x + rect_width, skip_pixel):
                 for i in range(color_list.shape[0]):
-                    diff_mean = abs(color_list[i] - src[y, x])
-                    diff_mean = abs(np.mean(diff_mean))
+                    diff = abs(color_list[i] - src[y, x])
+                    #print(x, y, distance, np.exp(distance))
                     """
                     normalization = 0
                     for j in range(chanel):
@@ -169,7 +177,7 @@ class cloggy_extractor:
                     normalization = normalization / chanel
                     normalization = np.exp(normalization)
                     if normalization < threshold:"""
-                    if np.exp(diff_mean) < threshold:
+                    if (diff < threshold).all():
                         #print(x, y, normalization, threshold, mark_color)
                         dst = cv2.circle(dst, (x, y), marker_size, mark_color, -1)
 
