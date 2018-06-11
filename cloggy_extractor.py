@@ -8,9 +8,9 @@ class cloggy_extractor:
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
-        self.version = '3.24'
+        self.version = '3.241'
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.35, fg_threshold=0.25):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.3, fg_threshold=0.25):
         print(marker_size, skip_pixel, bg_threshold, fg_threshold)
         height, width = img.shape[:2]
         if width != 640 and height != 640:
