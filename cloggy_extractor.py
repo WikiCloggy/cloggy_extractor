@@ -8,9 +8,9 @@ class cloggy_extractor:
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
-        self.version = '3.23'
+        self.version = '3.24'
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.2, fg_threshold=0.25):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.35, fg_threshold=0.25):
         print(marker_size, skip_pixel, bg_threshold, fg_threshold)
         height, width = img.shape[:2]
         if width != 640 and height != 640:
@@ -20,7 +20,7 @@ class cloggy_extractor:
         mask = np.zeros(img.shape[:2], np.uint8)
         bgd_model = np.zeros((1, 65), np.float64)
         fgd_model = np.zeros((1, 65), np.float64)
-        cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_RECT)
+        cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 5, cv2.GC_INIT_WITH_RECT)
 
         bgd_model = np.zeros((1, 65), np.float64)
         fgd_model = np.zeros((1, 65), np.float64)
@@ -40,7 +40,7 @@ class cloggy_extractor:
                               fg_color_list=fg_color_list, bg_color_list=bg_color_list,
                               marker_size=marker_size, skip_pixel=skip_pixel,
                               bg_threshold=bg_threshold, fg_threshold=fg_threshold)
-        cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 1, cv2.GC_INIT_WITH_MASK)
+        cv2.grabCut(_img, mask, rect, bgd_model, fgd_model, 5, cv2.GC_INIT_WITH_MASK)
 
         mask2 = np.where((mask == 1) + (mask == 3), 255, 0).astype('uint8')
 
@@ -260,13 +260,13 @@ class cloggy_extractor:
 
                         if (abs(z) < bg_threshold).all():
                             mask = cv2.circle(mask, (x, y), marker_size, 0, -1)
-                    if mask[y, x] == 3:
-                        for info in fg_color_list:
-                            z = img[y, x] - info['mean']
-                            z = z / info['std']
+                if mask[y, x] == 3:
+                    for info in fg_color_list:
+                        z = img[y, x] - info['mean']
+                        z = z / info['std']
 
-                            if (abs(z) < fg_threshold).all():
-                                mask = cv2.circle(mask, (x, y), marker_size, 1, -1)
+                        if (abs(z) < fg_threshold).all():
+                            mask = cv2.circle(mask, (x, y), marker_size, 1, -1)
         return mask
 
     def get_average_color(self, img, mask, _patch_size, startX, endX, startY, endY, array, vertical=True, bg=True, except_white=False, except_black=False):
