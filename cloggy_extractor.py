@@ -8,7 +8,7 @@ class cloggy_extractor:
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
-        self.version = '3.21'
+        self.version = '3.22'
 
     def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.25, fg_threshold=0.25):
         print(marker_size, skip_pixel, bg_threshold, fg_threshold)
@@ -260,13 +260,13 @@ class cloggy_extractor:
 
                         if (abs(z) < bg_threshold).all():
                             mask = cv2.circle(mask, (x, y), marker_size, 0, -1)
-                elif mask[y, x] == 3:
-                    for info in fg_color_list:
-                        z = img[y, x] - info['mean']
-                        z = z / info['std']
+                    if mask[y, x] == 3:
+                        for info in fg_color_list:
+                            z = img[y, x] - info['mean']
+                            z = z / info['std']
 
-                        if (abs(z) < fg_threshold).all():
-                            mask = cv2.circle(mask, (x, y), marker_size, 1, -1)
+                            if (abs(z) < fg_threshold).all():
+                                mask = cv2.circle(mask, (x, y), marker_size, 1, -1)
         return mask
 
     def get_average_color(self, img, mask, _patch_size, startX, endX, startY, endY, array, vertical=True, bg=True, except_white=False, except_black=False):
