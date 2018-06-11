@@ -8,7 +8,7 @@ class cloggy_extractor:
         self.filter_iter_number = filter_iter_number
         self.min_patch_size = min_patch_size
         self.max_patch_size = max_patch_size
-        self.version = '3.2'
+        self.version = '3.21'
 
     def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.25, fg_threshold=0.25):
         print(marker_size, skip_pixel, bg_threshold, fg_threshold)
@@ -48,8 +48,8 @@ class cloggy_extractor:
         if kernal_size % 2 == 0:
             kernal_size += 1
         kernal = np.ones((kernal_size, kernal_size), np.uint8)
-        #mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernal)
-        #mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernal)
+        mask2 = cv2.morphologyEx(mask2, cv2.MORPH_OPEN, kernal)
+        mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernal)
 
         return mask2
 
