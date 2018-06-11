@@ -136,7 +136,7 @@ class cloggy_extractor:
         patch_size = min(patch_size, self.max_patch_size)
 
         startX, startY = (rectX, rectY)
-        while startY <= rectY + rectHeight - patch_size:
+        while startY < rectY + rectHeight - patch_size:
             fg_n = 0
             bg_n = 0
             for y in range(startY, startY + patch_size):
