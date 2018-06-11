@@ -253,7 +253,7 @@ class cloggy_extractor:
         rect_x, rect_y, rect_width, rect_height = rect
         for y in range(rect_y, rect_y + rect_height, skip_pixel):
             for x in range(rect_x, rect_x + rect_width, skip_pixel):
-                if mask[y, x] == 2:
+                if mask[y, x] >= 2:
                     for info in bg_color_list:
                         z = img[y, x] - info['mean']
                         z = z / info['std']
