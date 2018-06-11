@@ -10,7 +10,7 @@ class cloggy_extractor:
         self.max_patch_size = max_patch_size
         self.version = '3'
 
-    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=6, bg_threshold=2.5, fg_threshold=2.5):
+    def delete_background(self, img, rect:tuple, skip_pixel=6, marker_size=8, bg_threshold=0.25, fg_threshold=0.25):
         height, width = img.shape[:2]
         if width != 640 or height != 640:
             img = self.optimze_image_size(img)
